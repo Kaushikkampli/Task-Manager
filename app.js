@@ -2,6 +2,7 @@ const express = require("express")
 const app = express()
 const ejs = require("ejs")
 const bodyParser = require("body-parser")
+const _ = require("lodash")
 
 const mongoose = require("mongoose")
 const url = "mongodb://localhost:27017/tasksdb"
@@ -21,6 +22,13 @@ const dbschema = new mongoose.Schema({
 
 const Task = new mongoose.model("Task", dbschema)
 
+const listdb = new mongoose.Schema({
+    name : String,
+    elements : [dbschema]
+})
+
+const List = new mongoose.model("List", listdb)
+
 
 app.get("/", function(req, res){
 
@@ -35,31 +43,79 @@ app.get("/", function(req, res){
 
 })
 
+app.get("/:listName", function(req, res){
+
+    let listName = _.capitalize(req.params.listName)
+
+    List.findOne({name : listName}, function(err, list)
+    {
+        if(!list){
+            
+            let newlist = new List({
+                name : listName,
+                elements : []
+            })
+
+            newlist.save()
+
+            res.redirect("/" + listName)
+
+        }
+        else{
+            res.render('list', {title : list.name, tasks : list.elements})
+        }
+    })
+})
 
 app.post("/delete", function(req, res)
 {
+
+    let today = new Date()
     let finishedid = req.body.tick
 
-    Task.deleteOne({ _id : finishedid } , function(err)
-    {
-        if(err)
-            console.log(err)
-        else
-            console.log("Deleted")
-    })
+    if(req.body.listName === today.toDateString()){
+        
+        Task.deleteOne({ _id : finishedid } , function(err)
+        {
+            if(err)
+                console.log(err)
+            else
+                console.log("Deleted")
+        })
 
-    res.redirect("/")
+        res.redirect("/")
+    }
+    else{
+
+        List.findOne({name : req.body.listName}, function(err, list){
+            
+            List.findOneAndUpdate({name : req.body.listName},{$pull : {elements : {_id : finishedid}}}, function(err, list){
+                res.redirect("/" + req.body.listName)
+            })
+        })
+    }
+
 })
 
 app.post("/", function(req, res){
 
+    let today = new Date()
+    
     let newTask = new Task({
         name : req.body.newtask
     })
-    
-    newTask.save()
 
-    res.redirect("/")
+    if(req.body.listName === today.toDateString()){
+        
+        newTask.save()
+        res.redirect("/")
+    }
+    else{
+
+        List.findOneAndUpdate({name : req.body.listName},{$push : {elements : newTask}}, function(err, list){
+            res.redirect("/" + req.body.listName)
+        })
+    }
 
 })
 

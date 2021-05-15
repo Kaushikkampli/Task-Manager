@@ -20,6 +20,7 @@
                         <p>  
                             <input type="checkbox" name = "tick" value = "<%= task._id %>" onChange = "this.form.submit()" > 
                             <%= task.name %>
+                            <input type="hidden" name = "listName" value = "<%= title %>">
                         </p>
                     </form>
                 </div>
@@ -28,7 +29,7 @@
 
             <form class = "item" action="/" method="POST">
                 <input type="text" name="newtask" placeholder = "New Task" autocomplete = "off" required><br>
-                <button type="submit">+</button>
+                <button type="submit" name = "listName" value = "<%= title %>" >+</button>
             </form> 
         </div>
 
