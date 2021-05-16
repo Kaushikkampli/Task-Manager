@@ -5,7 +5,7 @@ const bodyParser = require("body-parser")
 const _ = require("lodash")
 
 const mongoose = require("mongoose")
-const url = "mongodb://localhost:27017/tasksdb"
+const url = "mongodb+srv://admin:5UxABah2OZLv0P16@taskcluster.yics9.mongodb.net/tasksdb"
 mongoose.connect(url)
 
 app.set('view engine', 'ejs')
@@ -29,6 +29,11 @@ const listdb = new mongoose.Schema({
 
 const List = new mongoose.model("List", listdb)
 
+let sample = new Task({
+    name : "sample"
+})
+
+sample.save()
 
 app.get("/", function(req, res){
 
@@ -49,21 +54,27 @@ app.get("/:listName", function(req, res){
 
     List.findOne({name : listName}, function(err, list)
     {
-        if(!list){
-            
-            let newlist = new List({
-                name : listName,
-                elements : []
-            })
+        if(!err)
+        {
+            if(!list){
+                
+                console.log("creating")
+                let newlist = new List({
+                    name : listName,
+                    elements : [sample]
+                })
 
-            newlist.save()
+                newlist.save()
 
-            res.redirect("/" + listName)
+                res.redirect("/" + listName)
 
+            }
+            else{
+                res.render('list', {title : list.name, tasks : list.elements})
+            }
         }
-        else{
-            res.render('list', {title : list.name, tasks : list.elements})
-        }
+        else
+            console.log(err)
     })
 })
 
@@ -119,6 +130,6 @@ app.post("/", function(req, res){
 
 })
 
-app.listen(5000, function(){
+app.listen(process.env,PORT || 3000, function(){
     console.log("listening")
 })
