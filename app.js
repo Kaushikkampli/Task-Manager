@@ -5,7 +5,7 @@ const bodyParser = require("body-parser")
 const _ = require("lodash")
 
 const mongoose = require("mongoose")
-const url = "mongodb+srv://admin:5UxABah2OZLv0P16@taskcluster.yics9.mongodb.net/tasksdb"
+const url = "mongodb+srv://admin:mongo123@taskcluster.yics9.mongodb.net/tasksdb"
 mongoose.connect(url)
 
 app.set('view engine', 'ejs')
